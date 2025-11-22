@@ -154,14 +154,14 @@ Para añadir un nuevo módulo, necesitas:
 
 1. Añadir una entrada en el sidebar:
 
-```html
-<li class="section-nav-item">
-  <button class="section-nav-button" data-section="nuevo-modulo">
-    🎯 Nuevo Módulo
-    <span class="section-progress" id="nuevo-modulo-progress">0/5</span>
-  </button>
-</li>
-```
+   ```html
+   <li class="section-nav-item">
+     <button class="section-nav-button" data-section="nuevo-modulo">
+       🎯 Nuevo Módulo
+       <span class="section-progress" id="nuevo-modulo-progress">0/5</span>
+     </button>
+   </li>
+   ```
 
 2. Crear una nueva sección con la estructura HTML correspondiente
 3. Añadir el nombre del módulo al array `sections` en JavaScript
