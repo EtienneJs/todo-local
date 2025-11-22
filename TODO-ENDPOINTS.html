@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TODO - Pruebas de Endpoints</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 20px;
+    }
+
+    .sidebar {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+    }
+
+    .sidebar h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 18px;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+
+    .section-nav {
+      list-style: none;
+    }
+
+    .section-nav-item {
+      margin-bottom: 10px;
+    }
+
+    .section-nav-button {
+      width: 100%;
+      padding: 12px 15px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 500;
+      color: #495057;
+      transition: all 0.3s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-nav-button:hover {
+      background: #e9ecef;
+      border-color: #3498db;
+    }
+
+    .section-nav-button.active {
+      background: #3498db;
+      color: white;
+      border-color: #3498db;
+    }
+
+    .section-nav-button.completed {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+
+    .section-nav-button.completed.active {
+      background: #28a745;
+      color: white;
+    }
+
+    .section-progress {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 5px;
+    }
+
+    .main-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section-header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #3498db;
+    }
+
+    .section-header h1 {
+      color: #2c3e50;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .section-header .subtitle {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+
+    .section-stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .stat-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .stat-box strong {
+      display: block;
+      font-size: 24px;
+      color: #3498db;
+      margin-bottom: 5px;
+    }
+
+    .stat-box span {
+      font-size: 12px;
+      color: #6c757d;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      color: #2c3e50;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 20px;
+      padding: 10px;
+      background: #ecf0f1;
+      border-left: 4px solid #3498db;
+      border-radius: 4px;
+    }
+
+    .endpoint-item {
+      margin: 15px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+      transition: all 0.3s;
+    }
+
+    .endpoint-item:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .endpoint-item.completed {
+      background: #d4edda;
+      border-left-color: #28a745;
+    }
+
+    .endpoint-item.completed label {
+      text-decoration: line-through;
+      color: #6c757d;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      margin-right: 12px;
+      cursor: pointer;
+    }
+
+    .method {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+      margin-right: 10px;
+    }
+
+    .method.post {
+      background: #28a745;
+      color: white;
+    }
+
+    .method.get {
+      background: #007bff;
+      color: white;
+    }
+
+    .method.patch {
+      background: #ffc107;
+      color: #000;
+    }
+
+    .method.delete {
+      background: #dc3545;
+      color: white;
+    }
+
+    .endpoint-path {
+      font-family: 'Courier New', monospace;
+      color: #e83e8c;
+      font-weight: bold;
+    }
+
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .notes {
+      margin-top: 15px;
+      padding: 15px;
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .notes strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #856404;
+    }
+
+    .notes ul {
+      margin-left: 20px;
+      margin-top: 8px;
+    }
+
+    .notes li {
+      margin: 5px 0;
+    }
+
+    .notes code {
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #e9ecef;
+    }
+
+    .nav-button {
+      padding: 12px 30px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-button:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .nav-button:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .nav-button.prev {
+      background: #3498db;
+    }
+
+    .nav-button.prev:not(:disabled):hover {
+      background: #2980b9;
+    }
+
+    .nav-button.prev:disabled {
+      background: #bdc3c7;
+    }
+
+    .global-stats {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .global-stats h3 {
+      background: transparent;
+      color: white;
+      margin: 0 0 15px 0;
+      padding: 0;
+      border: none;
+    }
+
+    .global-stats-content {
+      display: flex;
+      justify-content: space-around;
+      gap: 20px;
+    }
+
+    .global-stat {
+      flex: 1;
+    }
+
+    .global-stat strong {
+      display: block;
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+
+    .global-stat span {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .add-task-button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .add-task-button:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .select-all-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .select-all-btn {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .select-all-btn:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+    }
+
+    .select-all-btn.select {
+      background: #007bff;
+    }
+
+    .select-all-btn.select:hover {
+      background: #0056b3;
+    }
+
+    .select-all-btn.deselect {
+      background: #dc3545;
+    }
+
+    .select-all-btn.deselect:hover {
+      background: #c82333;
+    }
+
+    .global-select-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      animation: slideDown 0.3s;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .modal-header h2 {
+      color: #2c3e50;
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #6c757d;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+
+    .close-modal:hover {
+      background: #f8f9fa;
+      color: #dc3545;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #495057;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: #6c757d;
+      font-size: 12px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 2px solid #e9ecef;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .custom-endpoint-item {
+      position: relative;
+    }
+
+    .delete-endpoint {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .endpoint-item:hover .delete-endpoint {
+      opacity: 1;
+    }
+
+    .delete-endpoint:hover {
+      background: #c82333;
+    }
+
+    @media (max-width: 768px) {
+      .app-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        top: 0;
+      }
+
+      .modal-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <h2>📋 Secciones</h2>
+      <ul class="section-nav">
+        <li class="section-nav-item">
+          <button class="section-nav-button active" data-section="bank">
+            🏦 Bank
+            <span class="section-progress" id="bank-progress">0/9</span>
+          </button>
+        </li>
+        <li class="section-nav-item">
+          <button class="section-nav-button" data-section="product">
+            📦 Product
+            <span class="section-progress" id="product-progress">0/6</span>
+          </button>
+        </li>
+        <li class="section-nav-item">
+          <button class="section-nav-button" data-section="buy-history">
+            🛒 Buy History
+            <span class="section-progress" id="buy-history-progress">0/5</span>
+          </button>
+        </li>
+        <li class="section-nav-item">
+          <button class="section-nav-button" data-section="contador">
+            🔢 Contador
+            <span class="section-progress" id="contador-progress">0/5</span>
+          </button>
+        </li>
+        <li class="section-nav-item">
+          <button class="section-nav-button" data-section="tropy">
+            🏆 Tropy
+            <span class="section-progress" id="tropy-progress">0/5</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+            <!-- Global Stats -->
+            <div class="global-stats">
+                <h3>Progreso General</h3>
+                <div class="global-stats-content">
+                    <div class="global-stat">
+                        <strong id="global-completed">0</strong>
+                        <span>Completados</span>
+                    </div>
+                    <div class="global-stat">
+                        <strong id="global-total">30</strong>
+                        <span>Total</span>
+                    </div>
+                    <div class="global-stat">
+                        <strong id="global-percentage">0%</strong>
+                        <span>Progreso</span>
+                    </div>
+                </div>
+            </div>
+
+      <!-- Section: Bank -->
+      <div class="section active" id="section-bank">
+        <div class="section-header">
+          <h1>🏦 Módulo Bank</h1>
+          <p class="subtitle">Base URL: <code>http://localhost:3000/api/bank</code></p>
+          <div class="section-stats">
+            <div class="stat-box">
+              <strong id="bank-completed">0</strong>
+              <span>Completados</span>
+            </div>
+            <div class="stat-box">
+              <strong id="bank-total">9</strong>
+              <span>Total</span>
+            </div>
+                    <div class="stat-box">
+                        <strong id="bank-percentage">0%</strong>
+                        <span>Progreso</span>
+                    </div>
+                </div>
+                <div class="select-all-buttons">
+                    <button class="select-all-btn select" onclick="selectSectionTasks('bank', true)">
+                        ✓ Seleccionar Todo
+                    </button>
+                    <button class="select-all-btn deselect" onclick="selectSectionTasks('bank', false)">
+                        ✗ Deseleccionar Todo
+                    </button>
+                </div>
+            </div>
+
+            <h3>Crear Banco</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-create" data-section="bank">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/bank</span>
+          </label>
+          <div class="code-block">{
+            "name": "Banco Ejemplo",
+            "image": "https://example.com/logo.png",
+            "account": [
+            {
+            "nro_account": 123456789,
+            "type_account": "Ahorros",
+            "current_balance": 1000.50
+            }
+            ]
+            }</div>
+          <div class="notes">
+            <strong>Notas:</strong>
+            <ul>
+              <li><code>name</code>: mínimo 6 caracteres, debe ser único</li>
+              <li><code>image</code>: opcional</li>
+              <li><code>account</code>: array con al menos 1 elemento, <code>nro_account</code> debe ser único</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Listar Bancos</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-list" data-section="bank">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/bank</span>
+          </label>
+        </div>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-list-filter" data-section="bank">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/bank?name=Banco</span> (con filtro por nombre)
+          </label>
+        </div>
+
+        <h3>Obtener Banco por ID</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-get" data-section="bank">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/bank/:id</span>
+          </label>
+          <div class="notes">Ejemplo: <code>GET /api/bank/123e4567-e89b-12d3-a456-426614174000</code></div>
+        </div>
+
+        <h3>Actualizar Banco</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-update" data-section="bank">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-path">/api/bank/:id</span>
+          </label>
+          <div class="code-block">{
+            "name": "Banco Actualizado",
+            "image": "https://example.com/new-logo.png"
+            }</div>
+        </div>
+
+        <h3>Eliminar Banco</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-delete" data-section="bank">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-path">/api/bank/:id</span>
+          </label>
+        </div>
+
+        <h3>Crear Cuenta Bancaria</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-account-create" data-section="bank">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/bank/create-account/:bankId</span>
+          </label>
+          <div class="code-block">{
+            "nro_account": 987654321,
+            "type_account": "Corriente",
+            "current_balance": 5000.00
+            }</div>
+          <div class="notes">
+            <strong>Notas:</strong>
+            <ul>
+              <li><code>nro_account</code>: entre 100000 y 999999999, debe ser único</li>
+              <li><code>type_account</code>: mínimo 3 caracteres</li>
+              <li><code>current_balance</code>: mínimo 0</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Actualizar Cuenta Bancaria</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-account-update" data-section="bank">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-path">/api/bank/update-account/:id</span>
+          </label>
+          <div class="code-block">{
+            "type_account": "Ahorros",
+            "current_balance": 7500.00
+            }</div>
+        </div>
+
+        <h3>Eliminar Cuenta Bancaria</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-account-delete" data-section="bank">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-path">/api/bank/delete-account/:id</span>
+          </label>
+        </div>
+
+        <h3>Crear Transacción</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="bank-transaction" data-section="bank">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/bank/account/transaction</span>
+          </label>
+          <div class="code-block">{
+            "description": "Transferencia entre cuentas",
+            "amount": 500.00,
+            "currency": "USD",
+            "accountOrigin": "123e4567-e89b-12d3-a456-426614174000",
+            "accountDestiny": "123e4567-e89b-12d3-a456-426614174001"
+            }</div>
+          <div class="notes">
+            <strong>Notas:</strong>
+            <ul>
+              <li><code>description</code>: mínimo 6 caracteres</li>
+              <li><code>amount</code>: número válido</li>
+              <li><code>currency</code>: mínimo 3 caracteres</li>
+              <li><code>accountOrigin</code> y <code>accountDestiny</code>: UUIDs válidos que deben existir</li>
+            </ul>
+          </div>
+        </div>
+
+                <button class="add-task-button" onclick="openAddTaskModal('bank')">
+                    ➕ Añadir Nueva Tarea
+                </button>
+
+                <div class="navigation">
+                    <button class="nav-button prev" disabled>← Anterior</button>
+                    <button class="nav-button next" onclick="navigateSection('product')">Siguiente →</button>
+                </div>
+            </div>
+
+      <!-- Section: Product -->
+      <div class="section" id="section-product">
+        <div class="section-header">
+          <h1>📦 Módulo Product</h1>
+          <p class="subtitle">Base URL: <code>http://localhost:3000/api/product</code></p>
+          <div class="section-stats">
+            <div class="stat-box">
+              <strong id="product-completed">0</strong>
+              <span>Completados</span>
+            </div>
+            <div class="stat-box">
+              <strong id="product-total">6</strong>
+              <span>Total</span>
+            </div>
+                    <div class="stat-box">
+                        <strong id="product-percentage">0%</strong>
+                        <span>Progreso</span>
+                    </div>
+                </div>
+                <div class="select-all-buttons">
+                    <button class="select-all-btn select" onclick="selectSectionTasks('product', true)">
+                        ✓ Seleccionar Todo
+                    </button>
+                    <button class="select-all-btn deselect" onclick="selectSectionTasks('product', false)">
+                        ✗ Deseleccionar Todo
+                    </button>
+                </div>
+            </div>
+
+            <h3>Crear Categoría</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="product-category-create" data-section="product">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/product/category</span>
+          </label>
+          <div class="code-block">{
+            "name": "Electrónicos",
+            "description": "Productos electrónicos y tecnología",
+            "image": "https://example.com/category.png"
+            }</div>
+          <div class="notes"><strong>Nota:</strong> <code>image</code> es opcional</div>
+        </div>
+
+        <h3>Crear Producto</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="product-create" data-section="product">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/product</span>
+          </label>
+          <div class="code-block">{
+            "name": "Laptop",
+            "description": "Laptop de alta gama",
+            "price": 1299.99,
+            "image": "https://example.com/laptop.png",
+            "categoriesIds": [
+            "123e4567-e89b-12d3-a456-426614174000"
+            ]
+            }</div>
+          <div class="notes">
+            <strong>Notas:</strong>
+            <ul>
+              <li><code>image</code>: opcional</li>
+              <li><code>categoriesIds</code>: array con al menos 1 categoría (UUIDs)</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Listar Productos</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="product-list" data-section="product">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/product</span>
+          </label>
+        </div>
+
+        <h3>Obtener Producto por ID</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="product-get" data-section="product">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/product/:id</span>
+          </label>
+          <div class="notes">Ejemplo: <code>GET /api/product/123e4567-e89b-12d3-a456-426614174000</code></div>
+        </div>
+
+        <h3>Actualizar Producto</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="product-update" data-section="product">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-path">/api/product/:id</span>
+          </label>
+          <div class="code-block">{
+            "name": "Laptop Actualizada",
+            "price": 1199.99
+            }</div>
+        </div>
+
+        <h3>Eliminar Producto</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="product-delete" data-section="product">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-path">/api/product/:id</span>
+          </label>
+        </div>
+
+                <button class="add-task-button" onclick="openAddTaskModal('product')">
+                    ➕ Añadir Nueva Tarea
+                </button>
+
+                <div class="navigation">
+                    <button class="nav-button prev" onclick="navigateSection('bank')">← Anterior</button>
+                    <button class="nav-button next" onclick="navigateSection('buy-history')">Siguiente →</button>
+                </div>
+            </div>
+
+      <!-- Section: Buy History -->
+      <div class="section" id="section-buy-history">
+        <div class="section-header">
+          <h1>🛒 Módulo Buy History</h1>
+          <p class="subtitle">Base URL: <code>http://localhost:3000/api/buy-history</code></p>
+          <div class="section-stats">
+            <div class="stat-box">
+              <strong id="buy-history-completed">0</strong>
+              <span>Completados</span>
+            </div>
+            <div class="stat-box">
+              <strong id="buy-history-total">5</strong>
+              <span>Total</span>
+            </div>
+                    <div class="stat-box">
+                        <strong id="buy-history-percentage">0%</strong>
+                        <span>Progreso</span>
+                    </div>
+                </div>
+                <div class="select-all-buttons">
+                    <button class="select-all-btn select" onclick="selectSectionTasks('buy-history', true)">
+                        ✓ Seleccionar Todo
+                    </button>
+                    <button class="select-all-btn deselect" onclick="selectSectionTasks('buy-history', false)">
+                        ✗ Deseleccionar Todo
+                    </button>
+                </div>
+            </div>
+
+            <h3>Crear Historial de Compra</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="buy-history-create" data-section="buy-history">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/buy-history</span>
+          </label>
+          <div class="code-block">{
+            "description": "Compra de productos electrónicos",
+            "bankAcount": "123e4567-e89b-12d3-a456-426614174000",
+            "detailBuy": [
+            {
+            "quantity": 2,
+            "productId": "123e4567-e89b-12d3-a456-426614174001"
+            },
+            {
+            "quantity": 1,
+            "productId": "123e4567-e89b-12d3-a456-426614174002"
+            }
+            ]
+            }</div>
+          <div class="notes">
+            <strong>Notas:</strong>
+            <ul>
+              <li><code>description</code>: mínimo 5 caracteres</li>
+              <li><code>bankAcount</code>: UUID válido de cuenta bancaria</li>
+              <li><code>detailBuy</code>: array con al menos 1 elemento, <code>quantity</code> mínimo 1</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Listar Historial de Compras</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="buy-history-list" data-section="buy-history">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/buy-history</span>
+          </label>
+        </div>
+
+        <h3>Obtener Historial por ID</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="buy-history-get" data-section="buy-history">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/buy-history/:id</span>
+          </label>
+          <div class="notes">Ejemplo: <code>GET /api/buy-history/123e4567-e89b-12d3-a456-426614174000</code></div>
+        </div>
+
+        <h3>Actualizar Historial</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="buy-history-update" data-section="buy-history">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-path">/api/buy-history/:id</span>
+          </label>
+          <div class="code-block">{
+            "description": "Compra actualizada"
+            }</div>
+        </div>
+
+        <h3>Eliminar Historial</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="buy-history-delete" data-section="buy-history">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-path">/api/buy-history/:id</span>
+          </label>
+        </div>
+
+                <button class="add-task-button" onclick="openAddTaskModal('buy-history')">
+                    ➕ Añadir Nueva Tarea
+                </button>
+
+                <div class="navigation">
+                    <button class="nav-button prev" onclick="navigateSection('product')">← Anterior</button>
+                    <button class="nav-button next" onclick="navigateSection('contador')">Siguiente →</button>
+                </div>
+            </div>
+
+      <!-- Section: Contador -->
+      <div class="section" id="section-contador">
+        <div class="section-header">
+          <h1>🔢 Módulo Contador</h1>
+          <p class="subtitle">Base URL: <code>http://localhost:3000/api/contador</code></p>
+          <div class="section-stats">
+            <div class="stat-box">
+              <strong id="contador-completed">0</strong>
+              <span>Completados</span>
+            </div>
+            <div class="stat-box">
+              <strong id="contador-total">5</strong>
+              <span>Total</span>
+            </div>
+                    <div class="stat-box">
+                        <strong id="contador-percentage">0%</strong>
+                        <span>Progreso</span>
+                    </div>
+                </div>
+                <div class="select-all-buttons">
+                    <button class="select-all-btn select" onclick="selectSectionTasks('contador', true)">
+                        ✓ Seleccionar Todo
+                    </button>
+                    <button class="select-all-btn deselect" onclick="selectSectionTasks('contador', false)">
+                        ✗ Deseleccionar Todo
+                    </button>
+                </div>
+            </div>
+
+            <h3>Crear Contador</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="contador-create" data-section="contador">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/contador</span>
+          </label>
+          <div class="code-block">{
+            "name": "Contador de Ventas",
+            "description": "Contador para registrar ventas mensuales"
+            }</div>
+          <div class="notes"><strong>Nota:</strong> Ambos campos mínimo 5 caracteres</div>
+        </div>
+
+        <h3>Listar Contadores</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="contador-list" data-section="contador">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/contador</span>
+          </label>
+        </div>
+
+        <h3>Obtener Contador por ID</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="contador-get" data-section="contador">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/contador/:id</span>
+          </label>
+          <div class="notes">Ejemplo: <code>GET /api/contador/123e4567-e89b-12d3-a456-426614174000</code></div>
+        </div>
+
+        <h3>Actualizar Contador</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="contador-update" data-section="contador">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-path">/api/contador/:id</span>
+          </label>
+          <div class="code-block">{
+            "name": "Contador Actualizado",
+            "description": "Nueva descripción"
+            }</div>
+        </div>
+
+        <h3>Eliminar Contador</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="contador-delete" data-section="contador">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-path">/api/contador/:id</span>
+          </label>
+        </div>
+
+                <button class="add-task-button" onclick="openAddTaskModal('contador')">
+                    ➕ Añadir Nueva Tarea
+                </button>
+
+                <div class="navigation">
+                    <button class="nav-button prev" onclick="navigateSection('buy-history')">← Anterior</button>
+                    <button class="nav-button next" onclick="navigateSection('tropy')">Siguiente →</button>
+                </div>
+            </div>
+
+      <!-- Section: Tropy -->
+      <div class="section" id="section-tropy">
+        <div class="section-header">
+          <h1>🏆 Módulo Tropy</h1>
+          <p class="subtitle">Base URL: <code>http://localhost:3000/api/tropy</code></p>
+          <div class="section-stats">
+            <div class="stat-box">
+              <strong id="tropy-completed">0</strong>
+              <span>Completados</span>
+            </div>
+            <div class="stat-box">
+              <strong id="tropy-total">5</strong>
+              <span>Total</span>
+            </div>
+                    <div class="stat-box">
+                        <strong id="tropy-percentage">0%</strong>
+                        <span>Progreso</span>
+                    </div>
+                </div>
+                <div class="select-all-buttons">
+                    <button class="select-all-btn select" onclick="selectSectionTasks('tropy', true)">
+                        ✓ Seleccionar Todo
+                    </button>
+                    <button class="select-all-btn deselect" onclick="selectSectionTasks('tropy', false)">
+                        ✗ Deseleccionar Todo
+                    </button>
+                </div>
+            </div>
+
+            <h3>Crear Trofeo</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="tropy-create" data-section="tropy">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/tropy</span>
+          </label>
+          <div class="code-block">{
+            "metodo_description": "Logro por primera compra",
+            "contador_id": "123e4567-e89b-12d3-a456-426614174000"
+            }</div>
+          <div class="notes">
+            <strong>Notas:</strong>
+            <ul>
+              <li><code>metodo_description</code>: mínimo 5 caracteres</li>
+              <li><code>contador_id</code>: UUID válido de contador</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Listar Trofeos</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="tropy-list" data-section="tropy">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/tropy</span>
+          </label>
+        </div>
+
+        <h3>Obtener Trofeo por ID</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="tropy-get" data-section="tropy">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/tropy/:id</span>
+          </label>
+          <div class="notes">Ejemplo: <code>GET /api/tropy/1</code></div>
+        </div>
+
+        <h3>Actualizar Trofeo</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="tropy-update" data-section="tropy">
+            <span class="method patch">PATCH</span>
+            <span class="endpoint-path">/api/tropy/:id</span>
+          </label>
+          <div class="code-block">{
+            "metodo_description": "Logro actualizado"
+            }</div>
+        </div>
+
+        <h3>Eliminar Trofeo</h3>
+        <div class="endpoint-item">
+          <label>
+            <input type="checkbox" data-endpoint="tropy-delete" data-section="tropy">
+            <span class="method delete">DELETE</span>
+            <span class="endpoint-path">/api/tropy/:id</span>
+          </label>
+        </div>
+
+                <button class="add-task-button" onclick="openAddTaskModal('tropy')">
+                    ➕ Añadir Nueva Tarea
+                </button>
+
+                <div class="navigation">
+                    <button class="nav-button prev" onclick="navigateSection('contador')">← Anterior</button>
+                    <button class="nav-button next" disabled>Finalizado ✓</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para añadir nueva tarea -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Añadir Nueva Tarea</h2>
+                <button class="close-modal" onclick="closeAddTaskModal()">&times;</button>
+            </div>
+            <form id="addTaskForm" onsubmit="addNewTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">Título / Nombre del Endpoint *</label>
+                    <input type="text" id="taskTitle" required placeholder="Ej: Obtener Usuario por Email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskMethod">Método HTTP *</label>
+                    <select id="taskMethod" required>
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskPath">Ruta del Endpoint *</label>
+                    <input type="text" id="taskPath" required placeholder="Ej: /api/bank/users/:id">
+                    <small>Incluye parámetros como :id si aplica</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskJson">JSON de Ejemplo (opcional)</label>
+                    <textarea id="taskJson" placeholder='{\n  "key": "value"\n}'></textarea>
+                    <small>Formato JSON válido</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskNotes">Notas (opcional)</label>
+                    <textarea id="taskNotes" placeholder="Información adicional sobre el endpoint..."></textarea>
+                </div>
+                
+                <input type="hidden" id="taskSection" value="">
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddTaskModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Añadir Tarea</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+  <script>
+    const sections = ['bank', 'product', 'buy-history', 'contador', 'tropy'];
+    let sectionTotals = {
+      'bank': 9,
+      'product': 6,
+      'buy-history': 5,
+      'contador': 5,
+      'tropy': 5
+    };
+    let currentSection = 'bank'; // Rastrear la sección actual
+
+    // Cargar tareas personalizadas guardadas
+    function loadCustomTasks() {
+      const customTasks = JSON.parse(localStorage.getItem('customTasks') || '[]');
+      customTasks.forEach(task => {
+        addTaskToDOM(task);
+      });
+      // Actualizar estadísticas después de cargar todas las tareas
+      // El total se calculará dinámicamente contando los checkboxes
+      updateAllStats();
+    }
+
+    // Abrir modal para añadir tarea
+    function openAddTaskModal(section) {
+      document.getElementById('taskSection').value = section;
+      document.getElementById('addTaskModal').classList.add('active');
+      document.getElementById('taskTitle').focus();
+    }
+
+    // Cerrar modal
+    function closeAddTaskModal() {
+      document.getElementById('addTaskModal').classList.remove('active');
+      document.getElementById('addTaskForm').reset();
+    }
+
+    // Añadir nueva tarea
+    function addNewTask(event) {
+      event.preventDefault();
+      
+      const title = document.getElementById('taskTitle').value.trim();
+      const method = document.getElementById('taskMethod').value;
+      const path = document.getElementById('taskPath').value.trim();
+      const json = document.getElementById('taskJson').value.trim();
+      const notes = document.getElementById('taskNotes').value.trim();
+      const section = document.getElementById('taskSection').value;
+      
+      if (!title || !path) {
+        alert('Por favor completa los campos requeridos');
+        return;
+      }
+
+      // Validar JSON si se proporciona
+      let parsedJson = null;
+      if (json) {
+        try {
+          parsedJson = JSON.parse(json);
+        } catch (e) {
+          alert('El JSON proporcionado no es válido');
+          return;
+        }
+      }
+
+      const taskId = `custom-${section}-${Date.now()}`;
+      const task = {
+        id: taskId,
+        section: section,
+        title: title,
+        method: method,
+        path: path,
+        json: parsedJson,
+        notes: notes
+      };
+
+      // Guardar en localStorage
+      const customTasks = JSON.parse(localStorage.getItem('customTasks') || '[]');
+      customTasks.push(task);
+      localStorage.setItem('customTasks', JSON.stringify(customTasks));
+
+      // Añadir al DOM
+      addTaskToDOM(task);
+      
+      // Actualizar estadísticas (el total se calculará dinámicamente)
+      updateAllStats();
+      
+      // Cerrar modal
+      closeAddTaskModal();
+    }
+
+    // Añadir tarea al DOM
+    function addTaskToDOM(task) {
+      const section = document.getElementById(`section-${task.section}`);
+      if (!section) return;
+
+      // Buscar el botón "Añadir Tarea" para insertar antes
+      const addButton = section.querySelector('.add-task-button');
+      const navigation = section.querySelector('.navigation');
+      
+      // Crear elemento h3 si no existe un título previo
+      const endpointItem = document.createElement('div');
+      endpointItem.className = 'endpoint-item custom-endpoint-item';
+      endpointItem.dataset.taskId = task.id;
+      
+      const methodClass = task.method.toLowerCase();
+      const methodColors = {
+        'get': 'get',
+        'post': 'post',
+        'patch': 'patch',
+        'put': 'patch',
+        'delete': 'delete'
+      };
+
+      let html = `
+        <label>
+          <input type="checkbox" data-endpoint="${task.id}" data-section="${task.section}">
+          <span class="method ${methodColors[methodClass] || 'get'}">${task.method}</span>
+          <span class="endpoint-path">${task.path}</span>
+        </label>
+        <button class="delete-endpoint" onclick="deleteCustomTask('${task.id}', '${task.section}')" title="Eliminar tarea">🗑️</button>
+      `;
+
+      if (task.json) {
+        html += `
+          <div class="code-block">${JSON.stringify(task.json, null, 2)}</div>
+        `;
+      }
+
+      if (task.notes) {
+        html += `
+          <div class="notes">
+            <strong>Notas:</strong>
+            <div>${task.notes.replace(/\n/g, '<br>')}</div>
+          </div>
+        `;
+      }
+
+      endpointItem.innerHTML = html;
+
+      // Insertar antes del botón "Añadir Tarea" o antes de la navegación
+      if (addButton) {
+        addButton.parentNode.insertBefore(endpointItem, addButton);
+      } else if (navigation) {
+        navigation.parentNode.insertBefore(endpointItem, navigation);
+      } else {
+        section.appendChild(endpointItem);
+      }
+
+      // Añadir event listener al checkbox
+      const checkbox = endpointItem.querySelector('input[type="checkbox"]');
+      if (checkbox && !checkbox.hasAttribute('data-listener-attached')) {
+        checkbox.setAttribute('data-listener-attached', 'true');
+        checkbox.addEventListener('change', () => {
+          saveState(checkbox);
+        });
+      }
+
+      // Cargar estado guardado del checkbox
+      const saved = localStorage.getItem(task.id);
+      if (saved === 'true' && checkbox) {
+        checkbox.checked = true;
+        updateItemStyle(checkbox);
+      }
+      
+      // Actualizar estadísticas después de añadir la tarea
+      setTimeout(() => {
+        updateAllStats();
+      }, 100);
+    }
+
+    // Eliminar tarea personalizada
+    function deleteCustomTask(taskId, section) {
+      if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+        return;
+      }
+
+      // Eliminar del DOM
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+      if (taskElement) {
+        taskElement.remove();
+      }
+
+      // Eliminar de localStorage
+      const customTasks = JSON.parse(localStorage.getItem('customTasks') || '[]');
+      const filtered = customTasks.filter(t => t.id !== taskId);
+      localStorage.setItem('customTasks', JSON.stringify(filtered));
+
+      // Eliminar estado del checkbox
+      localStorage.removeItem(taskId);
+
+      // Actualizar estadísticas (el total se calculará dinámicamente)
+      updateAllStats();
+    }
+
+    // Navegación entre secciones
+    function navigateSection(sectionName) {
+      // Ocultar todas las secciones
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Mostrar sección seleccionada
+      document.getElementById(`section-${sectionName}`).classList.add('active');
+
+      // Actualizar sección actual
+      currentSection = sectionName;
+
+      // Actualizar botones de navegación
+      updateNavButtons(sectionName);
+
+      // Actualizar sidebar
+      updateSidebar(sectionName);
+    }
+
+    function updateNavButtons(currentSection) {
+      const currentIndex = sections.indexOf(currentSection);
+      const prevButton = document.querySelector(`#section-${currentSection} .nav-button.prev`);
+      const nextButton = document.querySelector(`#section-${currentSection} .nav-button.next`);
+
+      if (prevButton) {
+        if (currentIndex === 0) {
+          prevButton.disabled = true;
+        } else {
+          prevButton.disabled = false;
+          prevButton.onclick = () => navigateSection(sections[currentIndex - 1]);
+        }
+      }
+
+      if (nextButton) {
+        if (currentIndex === sections.length - 1) {
+          nextButton.disabled = true;
+        } else {
+          nextButton.disabled = false;
+          nextButton.onclick = () => navigateSection(sections[currentIndex + 1]);
+        }
+      }
+    }
+
+    function updateSidebar(activeSection) {
+      document.querySelectorAll('.section-nav-button').forEach(button => {
+        button.classList.remove('active');
+        if (button.dataset.section === activeSection) {
+          button.classList.add('active');
+        }
+      });
+    }
+
+    // Cargar estado guardado
+    function loadState() {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(checkbox => {
+        const saved = localStorage.getItem(checkbox.dataset.endpoint);
+        if (saved === 'true') {
+          checkbox.checked = true;
+          updateItemStyle(checkbox);
+        }
+      });
+      updateAllStats();
+    }
+
+    // Guardar estado
+    function saveState(checkbox, skipUpdate = false) {
+      localStorage.setItem(checkbox.dataset.endpoint, checkbox.checked);
+      updateItemStyle(checkbox);
+      if (!skipUpdate) {
+        updateAllStats();
+      }
+    }
+
+    // Actualizar estilo del item
+    function updateItemStyle(checkbox) {
+      const item = checkbox.closest('.endpoint-item');
+      if (checkbox.checked) {
+        item.classList.add('completed');
+      } else {
+        item.classList.remove('completed');
+      }
+    }
+
+    // Actualizar estadísticas de una sección
+    function updateSectionStats(sectionName) {
+      const checkboxes = document.querySelectorAll(`input[data-section="${sectionName}"]`);
+      // Calcular total dinámicamente contando todos los checkboxes
+      const total = checkboxes.length;
+      const completed = Array.from(checkboxes).filter(cb => cb.checked).length;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      // Actualizar sectionTotals para mantener consistencia
+      sectionTotals[sectionName] = total;
+
+      const completedEl = document.getElementById(`${sectionName}-completed`);
+      const totalEl = document.getElementById(`${sectionName}-total`);
+      const percentageEl = document.getElementById(`${sectionName}-percentage`);
+      const progressEl = document.getElementById(`${sectionName}-progress`);
+
+      if (completedEl) completedEl.textContent = completed;
+      if (totalEl) totalEl.textContent = total;
+      if (percentageEl) percentageEl.textContent = percentage + '%';
+      if (progressEl) progressEl.textContent = `${completed}/${total}`;
+
+      // Actualizar botón en sidebar
+      const sidebarButton = document.querySelector(`[data-section="${sectionName}"]`);
+      if (sidebarButton) {
+        if (completed === total && total > 0) {
+          sidebarButton.classList.add('completed');
+        } else {
+          sidebarButton.classList.remove('completed');
+        }
+      }
+
+      // Verificar si la sección está completada y mostrar confeti simple
+      checkSectionCompleted(sectionName, completed, total);
+    }
+
+
+    // Inicializar js-confetti
+    let confetti = null;
+
+    // Verificar si todas las tareas están completadas y mostrar confeti
+    function checkAllTasksCompleted() {
+      const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+      const globalTotal = allCheckboxes.length;
+      const globalCompleted = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+      
+      // Verificar si todas las tareas están completadas
+      if (globalTotal > 0 && globalCompleted === globalTotal) {
+        // Verificar si ya se mostró el confeti para evitar múltiples disparos
+        const confetiShown = localStorage.getItem('confetiShown');
+        if (!confetiShown || confetiShown !== 'true') {
+          showConfetti();
+          localStorage.setItem('confetiShown', 'true');
+        }
+      } else {
+        // Si hay tareas sin completar, resetear el flag para poder mostrar confeti de nuevo
+        if (globalCompleted < globalTotal) {
+          localStorage.removeItem('confetiShown');
+        }
+      }
+    }
+
+    // Mostrar animación de confeti simple (para secciones)
+    function showSimpleConfetti() {
+      if (typeof JSConfetti === 'undefined') {
+        console.log('JSConfetti no está cargado aún');
+        return;
+      }
+      
+      if (!confetti) {
+        confetti = new JSConfetti();
+      }
+      
+      // Confeti simple con menos emojis y cantidad
+      confetti.addConfetti({
+        emojis: ['✅', '🎉'],
+        emojiSize: 80,
+        confettiNumber: 30,
+      });
+    }
+
+    // Mostrar animación de confeti (para todas las tareas completadas)
+    function showConfetti() {
+      if (typeof JSConfetti === 'undefined') {
+        console.log('JSConfetti no está cargado aún');
+        return;
+      }
+      
+      if (!confetti) {
+        confetti = new JSConfetti();
+      }
+      
+      // Múltiples disparos de confeti para un efecto más espectacular
+      confetti.addConfetti({
+        emojis: ['🎉', '✅', '🚀', '⭐', '🎊', '💯'],
+        emojiSize: 100,
+        confettiNumber: 50,
+      });
+
+      setTimeout(() => {
+        confetti.addConfetti({
+          emojis: ['🎉', '✅', '🚀', '⭐', '🎊', '💯'],
+          emojiSize: 100,
+          confettiNumber: 50,
+        });
+      }, 500);
+
+      setTimeout(() => {
+        confetti.addConfetti({
+          emojis: ['🎉', '✅', '🚀', '⭐', '🎊', '💯'],
+          emojiSize: 100,
+          confettiNumber: 50,
+        });
+      }, 1000);
+    }
+
+    // Verificar si una sección está completada y mostrar confeti
+    function checkSectionCompleted(sectionName, completed, total) {
+      if (total > 0 && completed === total) {
+        // Verificar si ya se mostró el confeti para esta sección
+        const sectionConfetiKey = `confetiSection-${sectionName}`;
+        const sectionConfetiShown = localStorage.getItem(sectionConfetiKey);
+        
+        if (!sectionConfetiShown || sectionConfetiShown !== 'true') {
+          showSimpleConfetti();
+          localStorage.setItem(sectionConfetiKey, 'true');
+        }
+      } else {
+        // Si la sección ya no está completa, resetear el flag
+        if (completed < total) {
+          localStorage.removeItem(`confetiSection-${sectionName}`);
+        }
+      }
+    }
+
+    // Actualizar todas las estadísticas
+    function updateAllStats() {
+      sections.forEach(section => {
+        updateSectionStats(section);
+      });
+
+      // Estadísticas globales
+      const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+      const globalTotal = allCheckboxes.length;
+      const globalCompleted = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+      const globalPercentage = globalTotal > 0 ? Math.round((globalCompleted / globalTotal) * 100) : 0;
+
+      document.getElementById('global-completed').textContent = globalCompleted;
+      document.getElementById('global-total').textContent = globalTotal;
+      document.getElementById('global-percentage').textContent = globalPercentage + '%';
+
+      // Verificar si todas las tareas están completadas
+      checkAllTasksCompleted();
+    }
+
+    // Seleccionar/deseleccionar todas las tareas de una sección
+    function selectSectionTasks(sectionName, select) {
+      const checkboxes = document.querySelectorAll(`input[data-section="${sectionName}"]`);
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = select;
+        updateItemStyle(checkbox);
+        saveState(checkbox, true); // skipUpdate para evitar múltiples llamadas
+      });
+      updateAllStats(); // Actualizar una sola vez al final
+    }
+
+    // Seleccionar/deseleccionar todas las tareas de la sección actual
+    function selectAllTasks(select) {
+      // Usar la sección actual en lugar de todas las tareas
+      selectSectionTasks(currentSection, select);
+    }
+
+    // Cerrar modal al hacer click fuera
+    window.onclick = function(event) {
+      const modal = document.getElementById('addTaskModal');
+      if (event.target === modal) {
+        closeAddTaskModal();
+      }
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // Primero cargar tareas personalizadas para que los checkboxes estén en el DOM
+      loadCustomTasks();
+      
+      // Luego cargar el estado de los checkboxes (incluyendo los personalizados)
+      loadState();
+
+      // Añadir event listeners a todos los checkboxes (incluyendo los que se añadan después)
+      function attachCheckboxListeners() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+          // Evitar duplicar listeners
+          if (!checkbox.hasAttribute('data-listener-attached')) {
+            checkbox.setAttribute('data-listener-attached', 'true');
+            checkbox.addEventListener('change', () => {
+              saveState(checkbox);
+            });
+          }
+        });
+      }
+
+      attachCheckboxListeners();
+
+      // Sidebar navigation
+      document.querySelectorAll('.section-nav-button').forEach(button => {
+        button.addEventListener('click', () => {
+          navigateSection(button.dataset.section);
+        });
+      });
+
+      // Inicializar navegación
+      updateNavButtons('bank');
+    });
+  </script>
+  <!-- js-confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+</body>
+
+</html>
