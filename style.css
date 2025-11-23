@@ -726,6 +726,16 @@ input[type="checkbox"] {
   font-family: var(--font-family-mono);
 }
 
+.form-group-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.form-group-row .form-group textarea {
+  font-family: inherit;
+}
+
 .form-group small {
   display: block;
   margin-top: var(--spacing-xs);
@@ -750,6 +760,61 @@ input[type="checkbox"] {
   color: var(--color-text-muted);
   margin: var(--spacing-xl) 0;
   font-style: italic;
+}
+
+/* ============================================
+   DAILY TASKS STYLES
+   ============================================ */
+.task-title {
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.task-description {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.task-meta {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.task-priority {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.task-priority.low {
+  background: #d4edda;
+  color: #155724;
+}
+
+.task-priority.medium {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.task-priority.high {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.task-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* ============================================

@@ -118,9 +118,19 @@ const StorageUtils = {
 const TaskManager = {
   createTaskId: (section) => `custom-${section}-${Date.now()}`,
   
-  validateTask: (title, path) => {
-    if (!title || !path) {
-      alert('Por favor completa los campos requeridos');
+  isDailyTask: (section) => section === 'daily-tasks',
+  
+  validateEndpointTask: (title, path) => {
+  if (!title || !path) {
+    alert('Por favor completa los campos requeridos');
+      return false;
+    }
+    return true;
+  },
+  
+  validateDailyTask: (title) => {
+    if (!title) {
+      alert('Por favor completa el título de la tarea');
       return false;
     }
     return true;
@@ -136,10 +146,10 @@ const TaskManager = {
     }
   },
   
-  createTask: (formData) => {
+  createEndpointTask: (formData) => {
     const { title, method, path, json, notes, section } = formData;
     
-    if (!TaskManager.validateTask(title, path)) return null;
+    if (!TaskManager.validateEndpointTask(title, path)) return null;
     
     const parsedJson = TaskManager.parseJson(json);
     if (parsedJson === null && json.trim()) return null;
@@ -150,9 +160,36 @@ const TaskManager = {
       title,
       method,
       path,
-      json: parsedJson,
-      notes
+    json: parsedJson,
+      notes,
+      type: 'endpoint'
     };
+  },
+  
+  createDailyTask: (formData) => {
+    const { title, description, priority, date, section } = formData;
+    
+    if (!TaskManager.validateDailyTask(title)) return null;
+    
+    return {
+      id: TaskManager.createTaskId(section),
+      section,
+      title,
+      description: description || '',
+      priority: priority || '',
+      date: date || '',
+      type: 'daily'
+    };
+  },
+  
+  createTask: (formData) => {
+    const { section } = formData;
+    
+    if (TaskManager.isDailyTask(section)) {
+      return TaskManager.createDailyTask(formData);
+    } else {
+      return TaskManager.createEndpointTask(formData);
+    }
   },
   
   saveTask: (task) => {
@@ -179,12 +216,45 @@ const TaskRenderer = {
   },
   
   buildTaskHTML: (task) => {
-    const methodClass = TaskRenderer.getMethodClass(task.method);
+    // Tareas diarias
+    if (task.type === 'daily') {
+      let html = `
+        <label>
+          <input type="checkbox" data-endpoint="${task.id}" data-section="${task.section}">
+          <span class="task-title">${task.title}</span>
+        </label>
+        <button class="delete-endpoint" onclick="deleteCustomTask('${task.id}', '${task.section}')" title="Eliminar tarea">🗑️</button>
+      `;
+      
+      if (task.description) {
+        html += `<div class="task-description">${task.description.replace(/\n/g, '<br>')}</div>`;
+      }
+      
+      const taskMeta = [];
+      if (task.priority) {
+        const priorityLabels = { low: '🟢 Baja', medium: '🟡 Media', high: '🔴 Alta' };
+        taskMeta.push(`<span class="task-priority ${task.priority}">${priorityLabels[task.priority] || task.priority}</span>`);
+      }
+      if (task.date) {
+        const dateObj = new Date(task.date);
+        const formattedDate = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        taskMeta.push(`<span class="task-date">📅 ${formattedDate}</span>`);
+      }
+      
+      if (taskMeta.length > 0) {
+        html += `<div class="task-meta">${taskMeta.join(' • ')}</div>`;
+      }
+      
+      return html;
+    }
+    
+    // Endpoints (comportamiento original)
+    const methodClass = TaskRenderer.getMethodClass(task.method || 'GET');
     let html = `
       <label>
         <input type="checkbox" data-endpoint="${task.id}" data-section="${task.section}">
-        <span class="method ${methodClass}">${task.method}</span>
-        <span class="endpoint-path">${task.path}</span>
+        <span class="method ${methodClass}">${task.method || 'GET'}</span>
+        <span class="endpoint-path">${task.path || ''}</span>
       </label>
       <button class="delete-endpoint" onclick="deleteCustomTask('${task.id}', '${task.section}')" title="Eliminar tarea">🗑️</button>
     `;
@@ -215,11 +285,11 @@ const TaskRenderer = {
     const addButton = sectionElement.querySelector('.add-task-button');
     const navigation = sectionElement.querySelector('.navigation');
     
-    if (addButton) {
-      addButton.parentNode.insertBefore(endpointItem, addButton);
-    } else if (navigation) {
-      navigation.parentNode.insertBefore(endpointItem, navigation);
-    } else {
+  if (addButton) {
+    addButton.parentNode.insertBefore(endpointItem, addButton);
+  } else if (navigation) {
+    navigation.parentNode.insertBefore(endpointItem, navigation);
+  } else {
       sectionElement.appendChild(endpointItem);
     }
     
@@ -398,14 +468,14 @@ const StateManager = {
 // ============================================
 const UIUtils = {
   updateItemStyle: (checkbox) => {
-    const item = checkbox.closest('.endpoint-item');
+  const item = checkbox.closest('.endpoint-item');
     if (!item) return;
     
-    if (checkbox.checked) {
-      item.classList.add('completed');
-    } else {
-      item.classList.remove('completed');
-    }
+  if (checkbox.checked) {
+    item.classList.add('completed');
+  } else {
+    item.classList.remove('completed');
+  }
   },
   
   showModal: (modalId) => {
@@ -481,28 +551,88 @@ const ModalManager = {
     const taskSectionInput = DOMUtils.getElement('taskSection');
     if (taskSectionInput) taskSectionInput.value = section;
     
-    UIUtils.showModal('addTaskModal');
+    const isDailyTask = TaskManager.isDailyTask(section);
+    const endpointFields = DOMUtils.getElement('endpointFields');
+    const dailyTaskFields = DOMUtils.getElement('dailyTaskFields');
+    const modalTitle = DOMUtils.getElement('modalTitle');
     
+    // Obtener campos de formulario
     const taskTitle = DOMUtils.getElement('taskTitle');
-    if (taskTitle) taskTitle.focus();
+    const taskMethod = DOMUtils.getElement('taskMethod');
+    const taskPath = DOMUtils.getElement('taskPath');
+    const dailyTaskTitle = DOMUtils.getElement('dailyTaskTitle');
+    
+    // Mostrar/ocultar campos según el tipo y manejar required
+    if (isDailyTask) {
+      if (endpointFields) endpointFields.style.display = 'none';
+      if (dailyTaskFields) dailyTaskFields.style.display = 'block';
+      if (modalTitle) modalTitle.textContent = '➕ Añadir Nueva Tarea Diaria';
+      
+      // Remover required de campos de endpoints
+      if (taskTitle) taskTitle.removeAttribute('required');
+      if (taskMethod) taskMethod.removeAttribute('required');
+      if (taskPath) taskPath.removeAttribute('required');
+      
+      // Añadir required a campos de tareas diarias
+      if (dailyTaskTitle) dailyTaskTitle.setAttribute('required', 'required');
+      
+      if (dailyTaskTitle) dailyTaskTitle.focus();
+    } else {
+      if (endpointFields) endpointFields.style.display = 'block';
+      if (dailyTaskFields) dailyTaskFields.style.display = 'none';
+      if (modalTitle) modalTitle.textContent = '➕ Añadir Nueva Tarea';
+      
+      // Añadir required a campos de endpoints
+      if (taskTitle) taskTitle.setAttribute('required', 'required');
+      if (taskMethod) taskMethod.setAttribute('required', 'required');
+      if (taskPath) taskPath.setAttribute('required', 'required');
+      
+      // Remover required de campos de tareas diarias
+      if (dailyTaskTitle) dailyTaskTitle.removeAttribute('required');
+      
+      if (taskTitle) taskTitle.focus();
+    }
+    
+    UIUtils.showModal('addTaskModal');
   },
   
   close: () => {
     UIUtils.hideModal('addTaskModal');
     UIUtils.resetForm('addTaskForm');
+    
+    // Resetear visibilidad de campos
+    const endpointFields = DOMUtils.getElement('endpointFields');
+    const dailyTaskFields = DOMUtils.getElement('dailyTaskFields');
+    if (endpointFields) endpointFields.style.display = 'block';
+    if (dailyTaskFields) dailyTaskFields.style.display = 'none';
   },
   
   handleSubmit: (event) => {
     event.preventDefault();
     
-    const formData = {
-      title: DOMUtils.getElement('taskTitle')?.value.trim() || '',
-      method: DOMUtils.getElement('taskMethod')?.value || '',
-      path: DOMUtils.getElement('taskPath')?.value.trim() || '',
-      json: DOMUtils.getElement('taskJson')?.value.trim() || '',
-      notes: DOMUtils.getElement('taskNotes')?.value.trim() || '',
-      section: DOMUtils.getElement('taskSection')?.value || ''
-    };
+    const section = DOMUtils.getElement('taskSection')?.value || '';
+    const isDailyTask = TaskManager.isDailyTask(section);
+    
+    let formData;
+    
+    if (isDailyTask) {
+      formData = {
+        title: DOMUtils.getElement('dailyTaskTitle')?.value.trim() || '',
+        description: DOMUtils.getElement('dailyTaskDescription')?.value.trim() || '',
+        priority: DOMUtils.getElement('dailyTaskPriority')?.value || '',
+        date: DOMUtils.getElement('dailyTaskDate')?.value || '',
+        section: section
+      };
+    } else {
+      formData = {
+        title: DOMUtils.getElement('taskTitle')?.value.trim() || '',
+        method: DOMUtils.getElement('taskMethod')?.value || '',
+        path: DOMUtils.getElement('taskPath')?.value.trim() || '',
+        json: DOMUtils.getElement('taskJson')?.value.trim() || '',
+        notes: DOMUtils.getElement('taskNotes')?.value.trim() || '',
+        section: section
+      };
+    }
     
     const task = TaskManager.createTask(formData);
     if (!task) return;
@@ -528,7 +658,7 @@ const addTaskToDOM = (task) => {
     TaskRenderer.attachCheckboxListener(checkbox);
     StateManager.loadTaskState(checkbox);
   }
-  
+
   setTimeout(() => {
     StatisticsManager.updateAllStats();
   }, DELAYS.STATS_UPDATE);
@@ -589,9 +719,9 @@ function loadCustomTasks() {
   StatisticsManager.updateAllStats();
 }
 
-function attachCheckboxListeners() {
+  function attachCheckboxListeners() {
   const checkboxes = DOMUtils.getElements('input[type="checkbox"]');
-  checkboxes.forEach(checkbox => {
+    checkboxes.forEach(checkbox => {
     TaskRenderer.attachCheckboxListener(checkbox);
   });
 }

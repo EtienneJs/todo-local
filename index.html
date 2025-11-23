@@ -730,41 +730,74 @@
     <div id="addTaskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>➕ Añadir Nueva Tarea</h2>
+                <h2 id="modalTitle">➕ Añadir Nueva Tarea</h2>
                 <button class="close-modal" onclick="closeAddTaskModal()">&times;</button>
             </div>
             <form id="addTaskForm" onsubmit="addNewTask(event)">
-                <div class="form-group">
-                    <label for="taskTitle">Título / Nombre del Endpoint *</label>
-                    <input type="text" id="taskTitle" required placeholder="Ej: Obtener Usuario por Email">
+                <!-- Campos para Endpoints (otras secciones) -->
+                <div id="endpointFields">
+                    <div class="form-group">
+                        <label for="taskTitle">Título / Nombre del Endpoint *</label>
+                        <input type="text" id="taskTitle" placeholder="Ej: Obtener Usuario por Email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskMethod">Método HTTP *</label>
+                        <select id="taskMethod">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PATCH">PATCH</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskPath">Ruta del Endpoint *</label>
+                        <input type="text" id="taskPath" placeholder="Ej: /api/bank/users/:id">
+                        <small>Incluye parámetros como :id si aplica</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskJson">JSON de Ejemplo (opcional)</label>
+                        <textarea id="taskJson" placeholder='{\n  "key": "value"\n}'></textarea>
+                        <small>Formato JSON válido</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskNotes">Notas (opcional)</label>
+                        <textarea id="taskNotes" placeholder="Información adicional sobre el endpoint..."></textarea>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="taskMethod">Método HTTP *</label>
-                    <select id="taskMethod" required>
-                        <option value="GET">GET</option>
-                        <option value="POST">POST</option>
-                        <option value="PATCH">PATCH</option>
-                        <option value="PUT">PUT</option>
-                        <option value="DELETE">DELETE</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="taskPath">Ruta del Endpoint *</label>
-                    <input type="text" id="taskPath" required placeholder="Ej: /api/bank/users/:id">
-                    <small>Incluye parámetros como :id si aplica</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="taskJson">JSON de Ejemplo (opcional)</label>
-                    <textarea id="taskJson" placeholder='{\n  "key": "value"\n}'></textarea>
-                    <small>Formato JSON válido</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="taskNotes">Notas (opcional)</label>
-                    <textarea id="taskNotes" placeholder="Información adicional sobre el endpoint..."></textarea>
+                <!-- Campos para Tareas Diarias -->
+                <div id="dailyTaskFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="dailyTaskTitle">Título de la Tarea *</label>
+                        <input type="text" id="dailyTaskTitle" placeholder="Ej: Revisar documentación del proyecto">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dailyTaskDescription">Descripción (opcional)</label>
+                        <textarea id="dailyTaskDescription" rows="4" placeholder="Describe los detalles de la tarea..."></textarea>
+                    </div>
+                    
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="dailyTaskPriority">Prioridad (opcional)</label>
+                            <select id="dailyTaskPriority">
+                                <option value="">Sin prioridad</option>
+                                <option value="low">Baja</option>
+                                <option value="medium">Media</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dailyTaskDate">Fecha límite (opcional)</label>
+                            <input type="date" id="dailyTaskDate">
+                        </div>
+                    </div>
                 </div>
                 
                 <input type="hidden" id="taskSection" value="">
