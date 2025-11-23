@@ -14,7 +14,8 @@ const SECTION_TOTALS = {
 const STORAGE_KEYS = {
   CUSTOM_TASKS: 'customTasks',
   CONFETI_SHOWN: 'confetiShown',
-  CONFETI_SECTION: 'confetiSection-'
+  CONFETI_SECTION: 'confetiSection-',
+  LAST_SECTION: 'lastSection'
 };
 
 const METHOD_COLORS = {
@@ -509,8 +510,24 @@ const NavigationManager = {
     }
     
     currentSection = sectionName;
+    
+    // Guardar la última sección seleccionada
+    StorageUtils.set(STORAGE_KEYS.LAST_SECTION, sectionName);
+    
     NavigationManager.updateNavButtons(sectionName);
     NavigationManager.updateSidebar(sectionName);
+  },
+  
+  loadLastSection: () => {
+    const lastSection = StorageUtils.get(STORAGE_KEYS.LAST_SECTION, null);
+    
+    // Validar que la sección existe en el array de secciones
+    if (lastSection && SECTIONS.includes(lastSection)) {
+      return lastSection;
+    }
+    
+    // Si no hay sección guardada o no es válida, usar la primera por defecto
+    return SECTIONS[0];
   },
   
   updateNavButtons: (sectionName) => {
@@ -732,7 +749,10 @@ function initializeNavigation() {
       NavigationManager.navigateToSection(button.dataset.section);
     });
   });
-  NavigationManager.updateNavButtons('bank');
+  
+  // Cargar la última sección seleccionada
+  const lastSection = NavigationManager.loadLastSection();
+  NavigationManager.navigateToSection(lastSection);
 }
 
 function initializeModalClose() {
